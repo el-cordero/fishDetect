@@ -4,6 +4,8 @@ __pycache__/
 .ruff_cache/
 .venv/
 *.egg-info/
+runs/
+notebooks/outputs/
 
 # Keep outputs/.gitkeep, but do not commit generated experiment artifacts by default.
 outputs/*
