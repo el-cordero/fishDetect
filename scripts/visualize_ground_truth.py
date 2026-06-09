@@ -19,7 +19,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--prepared-root", default=None)
     parser.add_argument("--out", default="outputs/ground_truth_review")
     parser.add_argument("--n", type=int, default=50)
-    parser.add_argument("--mode", choices=["random", "rare", "crowded"], default="random")
+    parser.add_argument("--mode", choices=["random", "rare", "crowded", "multi_class"], default="random")
     parser.add_argument("--seed", type=int, default=23401)
     return parser.parse_args()
 
@@ -48,6 +48,8 @@ def _select(images, annotations, mode, n, seed):
     rows = list(images)
     if mode == "crowded":
         rows.sort(key=lambda row: len(ann_by_image[str(row["image_id"])]), reverse=True)
+    elif mode == "multi_class":
+        rows.sort(key=lambda row: len({a["class_name"] for a in ann_by_image[str(row["image_id"])]}), reverse=True)
     elif mode == "rare":
         counts = defaultdict(int)
         for ann in annotations:

@@ -18,6 +18,9 @@ from fishdetect.config import ConfigError, load_config
 from fishdetect.utils.files import ensure_dir, write_json
 from fishdetect.utils.seed import detect_device, package_versions
 
+DEFAULT_DATASET_ROOT = "/Users/ec/Documents/Data/FishDetectNOAA/_data/merged_viame_v2"
+DEFAULT_PREPARED_ROOT = "/Users/ec/Documents/Data/FishDetectNOAA/_data/prepared_ml"
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Check local FishDetect setup before running data preparation or training.")
@@ -28,6 +31,9 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> int:
     args = parse_args()
+    os.environ.setdefault("FISHDETECT_DATASET_ROOT", DEFAULT_DATASET_ROOT)
+    os.environ.setdefault("FISHDETECT_PREPARED_ROOT", DEFAULT_PREPARED_ROOT)
+
     out = ensure_dir(args.out)
     checks = []
     ready = True

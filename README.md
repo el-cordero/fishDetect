@@ -70,17 +70,15 @@ Use `configs/macbook_smoke.yaml` for the first local test. It uses a small subse
 
 Run these notebooks in order for a step-by-step workflow:
 
-```text
-00_local_setup_check.ipynb
-01_dataset_audit.ipynb
-02_prepare_detection_dataset.ipynb
-03_visualize_ground_truth.ipynb
-04_yolo_smoke_test_macbook.ipynb
-05_train_yolo_models.ipynb
-06_evaluate_models.ipynb
-07_visual_review_predictions.ipynb
-08_model_comparison_report.ipynb
-```
+1. `00_local_setup_check.ipynb`
+2. `01_dataset_audit.ipynb`
+3. `02_prepare_detection_dataset.ipynb`
+4. `03_visualize_ground_truth.ipynb`
+5. `04_yolo_smoke_test_macbook.ipynb`
+6. `05_train_yolo_models.ipynb`
+7. `06_evaluate_models.ipynb`
+8. `07_visual_review_predictions.ipynb`
+9. `08_model_comparison_report.ipynb`
 
 The first five notebooks do not require full model training.
 
