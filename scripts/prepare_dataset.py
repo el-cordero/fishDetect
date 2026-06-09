@@ -17,7 +17,6 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--prepared-root", default=None, help="Override prepared output root.")
     parser.add_argument("--reuse-split", default=None, help="Reuse an existing split manifest CSV.")
     parser.add_argument("--max-images", type=int, default=None, help="Prepare only a tiny annotated subset, useful for smoke tests.")
-    parser.add_argument("--weak-box-masks", action="store_true", help="Enable weak box-mask metadata. Does not mark boxes as true masks.")
     return parser.parse_args()
 
 
@@ -29,7 +28,6 @@ def main() -> int:
         max_images=args.max_images,
         prepared_root_override=args.prepared_root,
         reuse_split=args.reuse_split,
-        allow_weak_box_masks=args.weak_box_masks,
     )
     print("Prepared dataset:")
     print(f"  root: {summary['prepared_root']}")

@@ -197,5 +197,20 @@ def find_experiment(config: dict[str, Any], name: str) -> dict[str, Any]:
     raise ConfigError(f"Experiment '{name}' was not found in config.")
 
 
+def experiment_names_for_group(config: dict[str, Any], group: str = "smoke") -> list[str]:
+    groups = config.get("experiment_groups", {})
+    if group not in groups:
+        available = ", ".join(sorted(groups)) or "none"
+        raise ConfigError(f"Experiment group '{group}' was not found. Available groups: {available}")
+    names = groups[group]
+    if not isinstance(names, list) or not names:
+        raise ConfigError(f"Experiment group '{group}' is empty or invalid.")
+    return [str(name) for name in names]
+
+
+def experiments_for_group(config: dict[str, Any], group: str = "smoke") -> list[dict[str, Any]]:
+    return [find_experiment(config, name) for name in experiment_names_for_group(config, group)]
+
+
 def project_root() -> Path:
     return Path(__file__).resolve().parents[2]

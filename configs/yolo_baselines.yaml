@@ -1,0 +1,28 @@
+baseline_families:
+  yolo8:
+    - yolo8n_det
+    - yolo8s_det
+    - yolo8m_det
+  yolo9:
+    - yolo9t_det
+    - yolo9s_det
+    - yolo9m_det
+  yolo10:
+    - yolo10n_det
+    - yolo10s_det
+    - yolo10m_det
+  yolo11:
+    - yolo11n_det
+    - yolo11s_det
+    - yolo11m_det
+  yolo12:
+    - yolo12n_det
+    - yolo12s_det
+    - yolo12m_det
+  transformer:
+    - rtdetr_l_det
+
+notes:
+  - YOLOv9, YOLOv10, YOLO11, YOLOv12, and RT-DETR availability depends on the installed Ultralytics version.
+  - Unsupported models should be skipped with a recorded reason.
+  - Smoke tests should start with YOLOv8n only.

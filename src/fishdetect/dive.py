@@ -43,7 +43,7 @@ def parse_dive_json(
             frame = int(feature.get("frame", track.get("begin", 0)))
             filename = frame_to_filename.get(frame, "")
             geometry = feature.get("geometry")
-            dive_geometry = _extract_polygon_geometry(geometry)
+            dive_geometry = _extract_dive_geometry(geometry)
             x1, y1, x2, y2 = [float(v) for v in bounds[:4]]
             rows.append(
                 {
@@ -59,8 +59,6 @@ def parse_dive_json(
                     "class_confidence": class_conf,
                     "has_dive_geometry": dive_geometry is not None,
                     "dive_geometry_if_available": json.dumps(dive_geometry) if dive_geometry else "",
-                    "has_polygon": False,
-                    "polygon_geometry_if_available": "",
                     "source_format": "dive",
                     "feature_index": feature_index,
                 }
@@ -85,23 +83,23 @@ def _best_confidence_pair(pairs: list[Any]) -> tuple[str, float | None]:
     return best_name, best_conf
 
 
-def _extract_polygon_geometry(geometry: Any) -> Any | None:
+def _extract_dive_geometry(geometry: Any) -> Any | None:
     if not geometry:
         return None
     if isinstance(geometry, dict) and geometry.get("type") == "Polygon":
         return geometry
     if isinstance(geometry, dict) and geometry.get("type") == "Feature":
-        return _extract_polygon_geometry(geometry.get("geometry"))
+        return _extract_dive_geometry(geometry.get("geometry"))
     if isinstance(geometry, dict) and geometry.get("type") == "FeatureCollection":
-        polygons = []
+        extracted_items = []
         for feature in geometry.get("features", []):
-            polygon = _extract_polygon_geometry(feature)
-            if polygon:
-                polygons.append(polygon)
-        if len(polygons) == 1:
-            return polygons[0]
-        if polygons:
-            return {"type": "MultiPolygon", "polygons": polygons}
+            extracted = _extract_dive_geometry(feature)
+            if extracted:
+                extracted_items.append(extracted)
+        if len(extracted_items) == 1:
+            return extracted_items[0]
+        if extracted_items:
+            return {"type": "GeometryCollection", "geometries": extracted_items}
     if isinstance(geometry, dict) and geometry.get("type") == "MultiPolygon":
         return geometry
     return None

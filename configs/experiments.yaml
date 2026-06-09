@@ -17,7 +17,10 @@ training:
   workers: 4
   device: auto
   amp: true
+  smoke_test: false
+  max_images:
   skip_network_weight_downloads_in_smoke: true
+  allow_remote_weight_downloads: false
 
 augmentation:
   hsv: true
@@ -38,6 +41,45 @@ imbalance:
     enabled: false
     folds: 5
 
+experiment_groups:
+  smoke:
+    - yolo8n_det
+  first_pass:
+    - yolo8n_det
+    - yolo8s_det
+    - yolo10n_det
+    - yolo11n_det
+    - yolo12n_det
+  main_comparison:
+    - yolo8s_det
+    - yolo9s_det
+    - yolo10s_det
+    - yolo11s_det
+    - yolo12s_det
+  capacity_check:
+    - yolo8m_det
+    - yolo9m_det
+    - yolo10m_det
+    - yolo11m_det
+    - yolo12m_det
+  extended:
+    - yolo8n_det
+    - yolo8s_det
+    - yolo8m_det
+    - yolo9t_det
+    - yolo9s_det
+    - yolo9m_det
+    - yolo10n_det
+    - yolo10s_det
+    - yolo10m_det
+    - yolo11n_det
+    - yolo11s_det
+    - yolo11m_det
+    - yolo12n_det
+    - yolo12s_det
+    - yolo12m_det
+    - rtdetr_l_det
+
 experiments:
   - name: yolo8n_det
     family: yolo
@@ -51,31 +93,68 @@ experiments:
     family: yolo
     model: yolov8m.pt
     task: detect
+  - name: yolo9t_det
+    family: yolo
+    model: yolov9t.pt
+    task: detect
+    optional: true
+  - name: yolo9s_det
+    family: yolo
+    model: yolov9s.pt
+    task: detect
+    optional: true
+  - name: yolo9m_det
+    family: yolo
+    model: yolov9m.pt
+    task: detect
+    optional: true
+  - name: yolo10n_det
+    family: yolo
+    model: yolov10n.pt
+    task: detect
+    optional: true
+  - name: yolo10s_det
+    family: yolo
+    model: yolov10s.pt
+    task: detect
+    optional: true
+  - name: yolo10m_det
+    family: yolo
+    model: yolov10m.pt
+    task: detect
+    optional: true
   - name: yolo11n_det
     family: yolo
     model: yolo11n.pt
     task: detect
+    optional: true
   - name: yolo11s_det
     family: yolo
     model: yolo11s.pt
     task: detect
+    optional: true
   - name: yolo11m_det
     family: yolo
     model: yolo11m.pt
     task: detect
+    optional: true
+  - name: yolo12n_det
+    family: yolo
+    model: yolo12n.pt
+    task: detect
+    optional: true
+  - name: yolo12s_det
+    family: yolo
+    model: yolo12s.pt
+    task: detect
+    optional: true
+  - name: yolo12m_det
+    family: yolo
+    model: yolo12m.pt
+    task: detect
+    optional: true
   - name: rtdetr_l_det
     family: yolo
     model: rtdetr-l.pt
     task: detect
-  - name: fasterrcnn_resnet50
-    family: torchvision_detection
-    model: fasterrcnn_resnet50_fpn
-    task: detect
-  - name: retinanet_resnet50
-    family: torchvision_detection
-    model: retinanet_resnet50_fpn
-    task: detect
-  - name: fcos_resnet50
-    family: torchvision_detection
-    model: fcos_resnet50_fpn
-    task: detect
+    optional: true

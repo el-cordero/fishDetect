@@ -29,8 +29,6 @@ ANNOTATION_FIELDS = [
     "sha256_if_available",
     "has_dive_geometry",
     "dive_geometry_if_available",
-    "has_polygon",
-    "polygon_geometry_if_available",
 ]
 
 IMAGE_FIELDS = [
@@ -163,8 +161,6 @@ def build_annotation_table(dataset_root: str | Path) -> tuple[list[dict[str, Any
             "sha256_if_available": manifest.get("sha256_if_available", ""),
             "has_dive_geometry": bool(dive_match and dive_match.get("has_dive_geometry")),
             "dive_geometry_if_available": dive_match.get("dive_geometry_if_available", "") if dive_match else "",
-            "has_polygon": False,
-            "polygon_geometry_if_available": "",
         }
         annotations.append(annotation)
 
@@ -174,7 +170,6 @@ def build_annotation_table(dataset_root: str | Path) -> tuple[list[dict[str, Any
         "image_count": len(images),
         "frame_to_filename_count": len(frame_to_filename),
         "dive_geometry_annotation_count": sum(1 for row in annotations if row.get("has_dive_geometry")),
-        "polygon_annotation_count": 0,
     }
     return annotations, images, meta
 
@@ -240,7 +235,6 @@ def validate_dataset(
         "image_without_annotations": image_without_annotations,
         "duplicate_like_annotation_count": duplicate_count,
         "dive_geometry_annotation_count": sum(1 for row in annotations if row.get("has_dive_geometry")),
-        "polygon_annotation_count": 0,
     }
 
 

@@ -1,0 +1,33 @@
+dataset:
+  root: /Users/ec/Documents/Data/FishDetectNOAA/_data/merged_viame_v2
+  prepared_root: /Users/ec/Documents/Data/FishDetectNOAA/_data/prepared_ml_smoke
+  split_seed: 23401
+  train: 0.70
+  val: 0.15
+  test: 0.15
+  stratify: true
+  group_by: sha256
+  link_images: true
+
+training:
+  imgsz: 640
+  epochs: 1
+  batch: auto
+  patience: 1
+  workers: 2
+  device: auto
+  amp: true
+  smoke_test: true
+  max_images: 50
+  skip_network_weight_downloads_in_smoke: true
+  allow_remote_weight_downloads: false
+
+experiment_groups:
+  smoke:
+    - yolo8n_smoke
+
+experiments:
+  - name: yolo8n_smoke
+    family: yolo
+    model: yolov8n.pt
+    task: detect

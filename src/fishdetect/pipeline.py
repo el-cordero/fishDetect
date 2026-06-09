@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections import Counter, defaultdict
 from pathlib import Path
 from typing import Any
 
@@ -7,7 +8,6 @@ from fishdetect.converters import (
     class_names_from_annotations,
     export_annotation_csv,
     export_coco_detection,
-    export_segmentation_optional,
     export_yolo_detection,
 )
 from fishdetect.dataset import build_annotation_table, class_count_summary, save_dataset_tables, validate_dataset
@@ -20,7 +20,6 @@ def prepare_dataset_pipeline(
     max_images: int | None = None,
     prepared_root_override: str | Path | None = None,
     reuse_split: str | Path | None = None,
-    allow_weak_box_masks: bool = False,
 ) -> dict[str, Any]:
     dataset_cfg = config["dataset"]
     dataset_root = Path(dataset_cfg["root"])
@@ -60,8 +59,15 @@ def prepare_dataset_pipeline(
     export_annotations = [row for row in annotations if str(row["image_id"]) in split_image_ids]
     export_images = [row for row in images if str(row["image_id"]) in split_image_ids]
     class_names = class_names_from_annotations(annotations)
+    split_summary_rows = _split_summary(split_manifest, export_annotations)
 
     export_annotation_csv(prepared_root, export_annotations)
+    write_csv_dicts(metadata_dir / "split_summary.csv", split_summary_rows, ["split", "image_count", "annotation_count", "class_count"])
+    write_csv_dicts(
+        metadata_dir / "class_counts_by_split.csv",
+        _class_counts_by_split(split_manifest, export_annotations),
+        ["split", "class_name", "annotation_count"],
+    )
     yolo_root = export_yolo_detection(
         prepared_root,
         export_annotations,
@@ -77,12 +83,6 @@ def prepare_dataset_pipeline(
         split_manifest,
         class_names=class_names,
         link_images=bool(dataset_cfg.get("link_images", True)),
-        include_segmentation=False,
-    )
-    segmentation_root = export_segmentation_optional(
-        prepared_root,
-        export_annotations,
-        allow_weak_box_masks=allow_weak_box_masks or bool(dataset_cfg.get("allow_weak_box_masks", False)),
     )
     summary = {
         "dataset_root": str(dataset_root),
@@ -94,13 +94,14 @@ def prepare_dataset_pipeline(
         "annotation_count_exported": len(export_annotations),
         "class_count": len(class_names),
         "dive_geometry_annotation_count_exported": sum(1 for row in export_annotations if row.get("has_dive_geometry")),
-        "polygon_annotation_count_exported": 0,
         "split_manifest": str(split_path),
         "yolo_data_yaml": str(yolo_root / "data.yaml"),
         "coco_root": str(coco_root),
-        "segmentation_root": str(segmentation_root),
+        "mask_export_supported": False,
+        "mask_export_note": "Bounding-box dataset only; no mask exports are created.",
         "validation": validation,
         "source_meta": meta,
+        "split_summary": split_summary_rows,
     }
     write_json(metadata_dir / "prepare_summary.json", summary)
     return summary
@@ -109,3 +110,32 @@ def prepare_dataset_pipeline(
 def _normalize_group_by(value: str) -> str:
     aliases = {"sha256": "sha256_if_available", "source": "source_file_or_dataset_if_available"}
     return aliases.get(value, value)
+
+
+def _split_summary(split_manifest: list[dict[str, Any]], annotations: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    split_by_image = {str(row["image_id"]): row["split"] for row in split_manifest}
+    image_counts = Counter(row["split"] for row in split_manifest)
+    ann_counts = Counter()
+    classes = defaultdict(set)
+    for ann in annotations:
+        split = split_by_image.get(str(ann["image_id"]), "unknown")
+        ann_counts[split] += 1
+        classes[split].add(ann["class_name"])
+    return [
+        {
+            "split": split,
+            "image_count": image_counts.get(split, 0),
+            "annotation_count": ann_counts.get(split, 0),
+            "class_count": len(classes.get(split, set())),
+        }
+        for split in ["train", "val", "test"]
+    ]
+
+
+def _class_counts_by_split(split_manifest: list[dict[str, Any]], annotations: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    split_by_image = {str(row["image_id"]): row["split"] for row in split_manifest}
+    counts = Counter((split_by_image.get(str(ann["image_id"]), "unknown"), ann["class_name"]) for ann in annotations)
+    return [
+        {"split": split, "class_name": class_name, "annotation_count": count}
+        for (split, class_name), count in sorted(counts.items())
+    ]

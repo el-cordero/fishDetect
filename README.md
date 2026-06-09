@@ -1,19 +1,30 @@
-# fishdetect-noaa-ml
+# FishDetect
 
-Training and evaluation code for the NOAA Fish Detect image merge.
+Reproducible machine learning workflow for Caribbean fish detection using cleaned VIAME/DIVE bounding-box annotations.
 
-This dataset is treated as **bounding boxes only**. Some DIVE records contain geometry-looking fields, but for this merge they are not trusted as masks. COCO export writes detection boxes. YOLO export writes normalized box labels. Segmentation is off unless a future dataset has validated masks.
+This repository is designed for local validation first, then model training and client-facing reporting. It does not contain the image dataset, prepared training exports, prediction galleries, or model weights.
 
-## Dataset
+## Scope
 
-Input is configured with environment variables:
+This project supports:
 
-```bash
-export FISHDETECT_DATASET_ROOT=/path/to/cleaned_merged_viame_dive_dataset
-export FISHDETECT_PREPARED_ROOT=/path/to/prepared_outputs
-```
+- local environment checks
+- dataset audit and class-name review
+- train/validation/test split creation with duplicate-image leakage prevention
+- YOLO detection export
+- COCO detection export
+- small MacBook smoke tests
+- opt-in YOLO model training
+- test-set prediction export
+- detection metrics
+- visual prediction review
+- model comparison reports
 
-Expected files:
+This project does **not** support segmentation for the current dataset. The annotations are bounding boxes only. DIVE geometry fields, when present, are retained as metadata and are not treated as semantic masks, instance masks, pseudo-masks, or Mask R-CNN inputs.
+
+## Dataset Assumptions
+
+Expected cleaned dataset files:
 
 ```text
 annotations.viame.csv
@@ -27,159 +38,182 @@ qc_summary.json
 merge_summary.json
 ```
 
-The scripts do not edit the dataset directory. Images are symlinked into the prepared output directory when possible.
-
-## Setup
+Set paths with environment variables:
 
 ```bash
-make setup
+export FISHDETECT_DATASET_ROOT=/path/to/cleaned_merged_viame_dive_dataset
+export FISHDETECT_PREPARED_ROOT=/path/to/prepared_outputs
 ```
 
-For quick checks, the repo works with normal Python data packages. Real training needs Ultralytics for YOLO or Torch/Torchvision for baselines.
+The preparation scripts never modify the dataset root. Prepared outputs are written to `FISHDETECT_PREPARED_ROOT`.
 
-## Usual Run
+## First Run On A MacBook
 
 ```bash
+git clone https://github.com/el-cordero/fishDetect.git
+cd fishDetect
+
+python -m venv .venv
+source .venv/bin/activate
+
+make setup
+make check-local
 make audit
 make prepare
-make smoke-test
-
-python scripts/train_yolo.py --experiment yolo8n_det
-python scripts/train_yolo.py --experiment yolo8s_det
-python scripts/evaluate_models.py --all
-python scripts/compare_experiments.py
-python scripts/visualize_predictions.py --best --split test --n 100
+make smoke-mac
+make test
 ```
 
-Smoke mode uses a small prepared subset and avoids remote YOLO weight downloads unless `--allow-downloads` is passed.
+Use `configs/macbook_smoke.yaml` for the first local test. It uses a small subset, 640 px images, one epoch, conservative workers, and automatic CPU/MPS/CUDA detection. If MPS is unavailable or unstable, the workflow can fall back to CPU.
 
-## Prepare Data
+## Notebook Order
+
+Run these notebooks in order for a step-by-step workflow:
+
+```text
+00_local_setup_check.ipynb
+01_dataset_audit.ipynb
+02_prepare_detection_dataset.ipynb
+03_visualize_ground_truth.ipynb
+04_yolo_smoke_test_macbook.ipynb
+05_train_yolo_models.ipynb
+06_evaluate_models.ipynb
+07_visual_review_predictions.ipynb
+08_model_comparison_report.ipynb
+```
+
+The first five notebooks do not require full model training.
+
+## Configuration
+
+Main configs:
+
+```text
+configs/local.example.yaml
+configs/macbook_smoke.yaml
+configs/experiments.yaml
+configs/yolo_baselines.yaml
+configs/class_aliases.yaml
+```
+
+`configs/experiments.yaml` uses environment variables for cross-computer reproducibility. `configs/macbook_smoke.yaml` contains local MacBook defaults and can be copied or edited for a first workstation run.
+
+## Model Groups
+
+Full model comparisons are opt-in. The default group is `smoke`.
 
 ```bash
-python scripts/prepare_dataset.py --config configs/experiments.yaml
+python scripts/run_all_experiments.py --group smoke
+python scripts/run_all_experiments.py --group first_pass --run-full
+python scripts/run_all_experiments.py --group main_comparison --run-full
+python scripts/run_all_experiments.py --group capacity_check --run-full
+python scripts/run_all_experiments.py --group extended --run-full
 ```
 
-Writes:
+Recommended order:
+
+1. Run `yolov8n` smoke test first.
+2. Run first-pass nano/small models.
+3. Run small-model comparison across YOLOv8, YOLOv9, YOLOv10, YOLO11, and YOLOv12.
+4. Run medium models only if results justify the compute.
+5. Keep RT-DETR as an optional high-capacity comparison.
+
+YOLOv9, YOLOv10, YOLO11, YOLOv12, and RT-DETR support depends on the installed Ultralytics version. Unsupported or unavailable models are skipped with the reason recorded in `metrics.json`.
+
+## Common Commands
+
+```bash
+make check-local
+make audit
+make prepare
+make visualize-gt
+make smoke-mac
+make train-first-pass
+make evaluate
+make visualize-predictions
+make compare
+make test
+```
+
+Train one model:
+
+```bash
+python scripts/train_yolo.py --experiment yolo8s_det --config configs/experiments.yaml
+```
+
+If model weights are not already local, add `--allow-downloads` intentionally:
+
+```bash
+python scripts/train_yolo.py --experiment yolo8s_det --allow-downloads
+```
+
+Evaluate all experiment directories:
+
+```bash
+python scripts/evaluate_models.py --all --split test
+```
+
+## Outputs
+
+Prepared data:
 
 ```text
 prepared_outputs/
   metadata/
-    annotations.csv
-    images.csv
-    split_manifest.csv
-    validation_report.json
-    prepare_summary.json
-  annotations_common.csv
   yolo_det/
   coco_det/
-  segmentation_optional/
 ```
 
-Default split is 70/15/15 train/val/test with a fixed seed. Splitting groups by SHA256 so duplicate image references do not cross splits.
-
-## Train
-
-```bash
-python scripts/train_yolo.py --experiment yolo8n_det --device auto
-```
-
-Configured detectors:
+Experiment outputs:
 
 ```text
-yolov8n/s/m
-yolo11n/s/m
-rtdetr-l
-fasterrcnn_resnet50_fpn
-retinanet_resnet50_fpn
-fcos_resnet50_fpn
-```
-
-Torchvision baselines are registered, but the full training loop is intentionally thin. YOLO is the main path to start with.
-
-## Evaluate And Compare
-
-```bash
-python scripts/evaluate_models.py --all
-python scripts/compare_experiments.py
-```
-
-Each run gets:
-
-```text
-outputs/experiments/<name>/
+outputs/experiments/<experiment_name>/
   config_used.yaml
+  environment.json
   train_log.csv
   metrics.json
   per_class_metrics.csv
-  confusion_matrix.png
-  pr_curve.png
-  f1_curve.png
   predictions/
+    predictions.json
+    false_positives.csv
+    false_negatives.csv
+    galleries/
   weights/
   model_card.md
 ```
 
-Comparison files land in `outputs/comparison/`.
-
-## Visual Checks
-
-```bash
-python scripts/visualize_predictions.py \
-  --experiment outputs/experiments/yolo8s_det \
-  --split test \
-  --n 100 \
-  --mode mixed
-```
-
-Green boxes are ground truth. Red boxes are predictions. Labels include class, confidence, and IoU status when prediction JSON is present.
-
-Useful modes:
+Comparison outputs:
 
 ```text
-mixed
-random
-high_confidence
-low_confidence
-crowded
-rare
-false_positives
-false_negatives
+outputs/comparison/
+  model_comparison.csv
+  model_comparison.md
+  model_comparison.html
+  best_model_summary.json
+  plots/
 ```
 
-## Class Names
+Generated outputs are ignored by git.
+
+## Class-Name Review
+
+Class aliases are audit-only unless explicitly applied in downstream code.
 
 ```bash
-python scripts/audit_classes.py \
-  --dataset "$FISHDETECT_DATASET_ROOT" \
-  --out outputs/class_audit
+python scripts/audit_classes.py --dataset "$FISHDETECT_DATASET_ROOT" --out outputs/class_audit
 ```
 
-The audit only flags names. It does not rename anything.
+Known review flags include likely spelling or taxonomy issues such as `Acantharus`, `Archarhinus`, `bivitatus`, `Lactophyrys`, and `Sparisoma viridae`. Juvenile and phase labels should remain separate unless a domain review says otherwise.
 
-Known checks include:
+## Troubleshooting
 
-```text
-Acantharus -> Acanthurus
-Archarhinus -> Carcharhinus
-bivitatus -> bivittatus
-Lactophyrys -> Lactophrys
-Sparisoma viridae -> Sparisoma viride
-```
+- `Dataset root not found`: set `FISHDETECT_DATASET_ROOT`.
+- `Prepared dataset not found`: run `make prepare`.
+- `Ultralytics is not installed`: run `make setup` inside the active environment.
+- `Skipped remote weight`: pass `--allow-downloads` only when you intentionally want Ultralytics to fetch weights.
+- MPS issues on Apple Silicon: rerun with `--device cpu`.
+- Empty prediction galleries: run evaluation first so `predictions.json` and FP/FN tables exist.
 
-Keep juvenile and phase labels separate unless a taxonomy review says otherwise.
+## Public Repository Notes
 
-## Segmentation
-
-Off for this merge.
-
-DIVE geometry is kept as metadata, but it is not exported as mask annotations and is not used for mask metrics. Box masks, if someone adds them later, should stay in a separate weak baseline and should not be reported as segmentation.
-
-## More Documentation
-
-- [Experiment plan](docs/EXPERIMENTS.md)
-- [Results template](docs/RESULTS.md)
-- [Data and privacy notes](docs/DATA_PRIVACY.md)
-
-## Field Notes
-
-Expect small fish, haze, reef occlusion, color shifts, class imbalance, and look-alike species. Start with conservative underwater augmentations: brightness/contrast/color jitter, mild blur, light noise/haze, and scale changes. Vertical flips are off by default.
+Do not commit raw data, prepared data, model weights, prediction images, generated outputs, or local filesystem paths. See [docs/DATA_PRIVACY.md](docs/DATA_PRIVACY.md) before publishing release updates.

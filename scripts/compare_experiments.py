@@ -9,7 +9,12 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from fishdetect.evaluation.plots import save_barplot, save_precision_recall_scatter
+from fishdetect.evaluation.plots import (
+    save_barplot,
+    save_per_class_heatmap,
+    save_precision_recall_scatter,
+    save_rare_class_plot,
+)
 from fishdetect.utils.files import ensure_dir, write_csv_dicts, write_json, write_text
 
 
@@ -56,7 +61,9 @@ def main() -> int:
     save_barplot(plots / "map50_barplot.png", rows, "experiment", "mAP50", "mAP50")
     save_barplot(plots / "map5095_barplot.png", rows, "experiment", "mAP50_95", "mAP50-95")
     save_precision_recall_scatter(plots / "precision_recall_scatter.png", rows)
-    save_barplot(plots / "per_class_heatmap.png", rows, "experiment", "mAP50", "Per-Class Heatmap Placeholder")
+    per_class_rows = _load_per_class_rows(output_root)
+    save_per_class_heatmap(plots / "per_class_performance_heatmap.png", per_class_rows)
+    save_rare_class_plot(plots / "rare_class_performance.png", per_class_rows)
     print(f"Wrote comparison for {len(rows)} experiment(s) to {comparison}.")
     return 0
 
@@ -91,6 +98,20 @@ def _html_table(rows):
     header = "".join(f"<th>{field}</th>" for field in FIELDS)
     body = "\n".join("<tr>" + "".join(f"<td>{row.get(field, '')}</td>" for field in FIELDS) + "</tr>" for row in rows)
     return f"<html><body><h1>Model Comparison</h1><table border='1'><thead><tr>{header}</tr></thead><tbody>{body}</tbody></table></body></html>\n"
+
+
+def _load_per_class_rows(output_root: Path):
+    import csv
+
+    rows = []
+    for path in sorted((output_root / "experiments").glob("*/per_class_metrics.csv")):
+        experiment = path.parent.name
+        with path.open("r", encoding="utf-8", newline="") as f:
+            for row in csv.DictReader(f):
+                if row.get("class_name"):
+                    row["experiment"] = experiment
+                    rows.append(row)
+    return rows
 
 
 if __name__ == "__main__":

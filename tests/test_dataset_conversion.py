@@ -10,7 +10,6 @@ def test_dataset_table_and_exports(synthetic_dataset, tmp_path):
     validation = validate_dataset(synthetic_dataset, annotations, images)
     assert validation["passed"] is True
     assert meta["dive_geometry_annotation_count"] == 1
-    assert meta["polygon_annotation_count"] == 0
     assert len(images) == 4
     assert len(annotations) == 3
 

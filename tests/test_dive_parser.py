@@ -8,5 +8,4 @@ def test_dive_parser_reads_dive_geometry_and_frame_mapping(synthetic_dataset):
     assert len(rows) == 3
     assert rows[0]["filename"] == "000000.png"
     assert rows[0]["has_dive_geometry"] is True
-    assert rows[0]["has_polygon"] is False
-    assert rows[1]["has_polygon"] is False
+    assert "has_polygon" not in rows[0]

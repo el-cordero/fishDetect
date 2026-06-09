@@ -1,0 +1,31 @@
+dataset:
+  root: /path/to/cleaned_merged_viame_dive_dataset
+  prepared_root: /path/to/prepared_outputs
+  split_seed: 23401
+  train: 0.70
+  val: 0.15
+  test: 0.15
+  stratify: true
+  group_by: sha256
+  link_images: true
+
+training:
+  imgsz: 1024
+  epochs: 100
+  batch: auto
+  patience: 25
+  workers: 4
+  device: auto
+  amp: true
+  smoke_test: false
+  skip_network_weight_downloads_in_smoke: true
+
+experiment_groups:
+  smoke:
+    - yolo8n_det
+
+experiments:
+  - name: yolo8n_det
+    family: yolo
+    model: yolov8n.pt
+    task: detect

@@ -1,5 +1,4 @@
 from fishdetect.evaluation.detection_metrics import bbox_iou, evaluate_detections
-from fishdetect.evaluation.segmentation_metrics import binary_iou, dice_score
 
 
 def test_detection_metrics_on_toy_example():
@@ -10,10 +9,3 @@ def test_detection_metrics_on_toy_example():
     assert metrics["precision"] == 1
     assert metrics["recall"] == 1
     assert metrics["mAP50"] > 0.9
-
-
-def test_segmentation_metrics_on_toy_masks():
-    true = [[1, 1], [0, 0]]
-    pred = [[1, 0], [1, 0]]
-    assert binary_iou(pred, true) == 1 / 3
-    assert dice_score(pred, true) == 0.5

@@ -50,9 +50,10 @@ def main() -> int:
     annotations = read_csv_dicts(annotations_path)
     split_rows = [row for row in read_csv_dicts(split_path) if row["split"] == args.split]
     predictions = _load_predictions(exp_dir)
+    review_ids = _review_image_ids(exp_dir, args.mode)
 
     gallery_root = ensure_dir(exp_dir / "predictions" / "galleries" / f"{args.split}_{args.mode}")
-    selected = _select_images(split_rows, annotations, predictions, args.mode, args.n, args.seed)
+    selected = _select_images(split_rows, annotations, predictions, args.mode, args.n, args.seed, review_ids)
     rendered = _render_gallery(gallery_root, selected, annotations, predictions)
     _write_html(gallery_root / "index.html", rendered, predictions_available=bool(predictions))
     print(f"Wrote {len(rendered)} rendered review image(s) to {gallery_root}.")
@@ -98,7 +99,19 @@ def _load_predictions(exp_dir: Path) -> list[dict]:
     return []
 
 
-def _select_images(split_rows, annotations, predictions, mode, n, seed):
+def _review_image_ids(exp_dir: Path, mode: str) -> set[str]:
+    if mode not in {"false_positives", "false_negatives"}:
+        return set()
+    table = exp_dir / "predictions" / f"{mode}.csv"
+    if not table.exists():
+        return set()
+    import csv
+
+    with table.open("r", encoding="utf-8", newline="") as f:
+        return {str(row["image_id"]) for row in csv.DictReader(f) if row.get("image_id")}
+
+
+def _select_images(split_rows, annotations, predictions, mode, n, seed, review_ids=None):
     ann_by_image = defaultdict(list)
     for ann in annotations:
         ann_by_image[str(ann["image_id"])].append(ann)
@@ -106,6 +119,8 @@ def _select_images(split_rows, annotations, predictions, mode, n, seed):
     for pred in predictions:
         pred_by_image[str(pred["image_id"])].append(pred)
     rows = list(split_rows)
+    if review_ids:
+        rows = [row for row in rows if str(row["image_id"]) in review_ids]
     if mode == "crowded":
         rows.sort(key=lambda row: len(ann_by_image[str(row["image_id"])]), reverse=True)
     elif mode == "rare":

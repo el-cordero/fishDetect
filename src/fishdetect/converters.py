@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 from collections import defaultdict
 from pathlib import Path
 from typing import Any
@@ -93,7 +92,6 @@ def export_coco_detection(
     split_manifest: list[dict[str, Any]],
     class_names: list[str] | None = None,
     link_images: bool = True,
-    include_segmentation: bool = False,
 ) -> Path:
     root = Path(prepared_root) / "coco_det"
     image_dir = ensure_dir(root / "images")
@@ -137,9 +135,6 @@ def export_coco_detection(
                     "area": max(w, 0.0) * max(h, 0.0),
                     "iscrowd": 0,
                 }
-                segmentation = geometry_to_coco_segmentation(ann.get("polygon_geometry_if_available", ""))
-                if include_segmentation and segmentation:
-                    coco_ann["segmentation"] = segmentation
                 coco_annotations.append(coco_ann)
                 ann_id += 1
         write_json(root / f"{split}.json", {"images": coco_images, "annotations": coco_annotations, "categories": categories})
@@ -153,69 +148,6 @@ def export_annotation_csv(
     path = Path(prepared_root) / "annotations_common.csv"
     write_csv_dicts(path, annotations, ANNOTATION_FIELDS)
     return path
-
-
-def export_segmentation_optional(
-    prepared_root: str | Path,
-    annotations: list[dict[str, Any]],
-    allow_weak_box_masks: bool = False,
-) -> Path:
-    root = ensure_dir(Path(prepared_root) / "segmentation_optional")
-    dive_geometry_count = sum(1 for row in annotations if row.get("has_dive_geometry"))
-    status = {
-        "real_polygon_annotations": 0,
-        "dive_geometry_annotation_count": dive_geometry_count,
-        "true_segmentation_supported": False,
-        "weak_box_masks_enabled": bool(allow_weak_box_masks),
-        "note": "This dataset is box-only. DIVE geometry, when present, is not treated as a validated mask.",
-    }
-    write_json(root / "segmentation_status.json", status)
-    lines = [
-        "# Segmentation",
-        "",
-        "Status: disabled",
-        "",
-        "This merge is treated as bounding-box-only. COCO exports contain boxes, not masks.",
-        f"DIVE geometry records preserved as metadata: {dive_geometry_count}",
-        "",
-        "Do not use these records as true segmentation masks.",
-    ]
-    if allow_weak_box_masks:
-        lines.append("Weak box masks were requested. Keep them in a separate baseline and do not compare them to real mask metrics.")
-    write_text(root / "README.md", "\n".join(lines) + "\n")
-    return root
-
-
-def geometry_to_coco_segmentation(geometry_text: str) -> list[list[float]]:
-    if not geometry_text:
-        return []
-    try:
-        geometry = json.loads(geometry_text)
-    except Exception:
-        return []
-
-    def polygon_to_flat(poly: dict[str, Any]) -> list[list[float]]:
-        out: list[list[float]] = []
-        for ring in poly.get("coordinates", []):
-            flat: list[float] = []
-            for point in ring:
-                if len(point) >= 2:
-                    flat.extend([float(point[0]), float(point[1])])
-            if len(flat) >= 6:
-                out.append(flat)
-        return out
-
-    if geometry.get("type") == "Polygon":
-        return polygon_to_flat(geometry)
-    if geometry.get("type") == "MultiPolygon":
-        out = []
-        if "coordinates" in geometry:
-            for coords in geometry.get("coordinates", []):
-                out.extend(polygon_to_flat({"type": "Polygon", "coordinates": coords}))
-        for poly in geometry.get("polygons", []):
-            out.extend(polygon_to_flat(poly))
-        return out
-    return []
 
 
 def _annotations_by_image(annotations: list[dict[str, Any]]) -> dict[str, list[dict[str, Any]]]:
