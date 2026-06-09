@@ -1,0 +1,81 @@
+dataset:
+  root: ${FISHDETECT_DATASET_ROOT}
+  prepared_root: ${FISHDETECT_PREPARED_ROOT}
+  split_seed: 23401
+  train: 0.70
+  val: 0.15
+  test: 0.15
+  stratify: true
+  group_by: sha256
+  link_images: true
+
+training:
+  imgsz: 1280
+  epochs: 100
+  batch: auto
+  patience: 25
+  workers: 4
+  device: auto
+  amp: true
+  skip_network_weight_downloads_in_smoke: true
+
+augmentation:
+  hsv: true
+  scale: true
+  mosaic: true
+  flipud: false
+  fliplr: true
+  underwater_color_jitter: true
+  mild_blur: true
+  haze_noise: true
+
+imbalance:
+  warn_rare_below: 5
+  oversample: false
+  weighted_sampling: false
+  rare_class_augmentation: false
+  k_fold:
+    enabled: false
+    folds: 5
+
+experiments:
+  - name: yolo8n_det
+    family: yolo
+    model: yolov8n.pt
+    task: detect
+  - name: yolo8s_det
+    family: yolo
+    model: yolov8s.pt
+    task: detect
+  - name: yolo8m_det
+    family: yolo
+    model: yolov8m.pt
+    task: detect
+  - name: yolo11n_det
+    family: yolo
+    model: yolo11n.pt
+    task: detect
+  - name: yolo11s_det
+    family: yolo
+    model: yolo11s.pt
+    task: detect
+  - name: yolo11m_det
+    family: yolo
+    model: yolo11m.pt
+    task: detect
+  - name: rtdetr_l_det
+    family: yolo
+    model: rtdetr-l.pt
+    task: detect
+  - name: fasterrcnn_resnet50
+    family: torchvision_detection
+    model: fasterrcnn_resnet50_fpn
+    task: detect
+  - name: retinanet_resnet50
+    family: torchvision_detection
+    model: retinanet_resnet50_fpn
+    task: detect
+  - name: fcos_resnet50
+    family: torchvision_detection
+    model: fcos_resnet50_fpn
+    task: detect

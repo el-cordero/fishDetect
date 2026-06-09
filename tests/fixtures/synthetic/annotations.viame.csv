@@ -1,0 +1,4 @@
+# 1: Detection or Track-id,2: Video or Image Identifier,3: Unique Frame Identifier,4-7: Img-bbox(TL_x,TL_y,BR_x,BR_y),8: Detection or Length Confidence,9: Target Length (0 or -1 if invalid),10-11+: Repeated Species,Confidence Pairs or Attributes
+0,000000.png,0,10,20,50,60,1.0,-1,Acantharus coeruleus,1.0
+1,000001.png,1,80,90,40,50,0.9,-1,Balistes vetula,1.0
+2,000002.png,2,5,5,25,30,0.8,-1,Halichoeres bivitatus juvenile,1.0

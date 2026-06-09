@@ -1,0 +1,13 @@
+numpy>=1.23
+pandas>=1.5
+Pillow>=9.0
+PyYAML>=6.0
+matplotlib>=3.6
+scikit-learn>=1.1
+pytest>=8.0
+
+# Training backends are optional but needed for real model training.
+torch>=2.0
+torchvision>=0.15
+ultralytics>=8.3
+opencv-python>=4.8

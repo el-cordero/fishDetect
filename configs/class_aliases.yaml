@@ -1,0 +1,10 @@
+# Class aliases are audit-only unless scripts are run with --apply-aliases.
+# Keep canonical classes separate when life phase or morphology is intentional.
+aliases:
+  Acantharus coeruleus: Acanthurus coeruleus
+  Acantharus tractus: Acanthurus tractus
+  Archarhinus perezii: Carcharhinus perezii
+  Halichoeres bivitatus juvenile: Halichoeres bivittatus juvenile
+  Lactophyrys bicaudalis: Lactophrys bicaudalis
+  Lactophyrys triqueter: Lactophrys triqueter
+  Sparisoma viridae: Sparisoma viride

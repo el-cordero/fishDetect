@@ -1,0 +1,11 @@
+root: ${FISHDETECT_DATASET_ROOT}
+prepared_root: ${FISHDETECT_PREPARED_ROOT}
+annotations_viame: annotations.viame.csv
+annotations_dive: annotations.dive.json
+meta: meta.json
+image_manifest: image_manifest.csv
+class_counts: class_counts.csv
+source_dataset_manifest: source_dataset_manifest.csv
+link_images: true
+allow_weak_box_masks: false
+treat_dive_geometry_as_masks: false

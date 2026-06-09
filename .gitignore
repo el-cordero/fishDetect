@@ -1,0 +1,19 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.venv/
+*.egg-info/
+
+# Keep outputs/.gitkeep, but do not commit generated experiment artifacts by default.
+outputs/*
+!outputs/.gitkeep
+
+# Prepared data lives outside the repo by default.
+data/*
+!data/README.md
+prepared/
+*.pt
+*.pth
+*.onnx
+*.engine

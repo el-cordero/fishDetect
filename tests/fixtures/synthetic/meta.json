@@ -1,0 +1,11 @@
+{
+  "fps": 1.0,
+  "version": 1,
+  "type": "image-sequence",
+  "imageData": [
+    {"filename": "000000.png", "id": "a"},
+    {"filename": "000001.png", "id": "b"},
+    {"filename": "000002.png", "id": "c"},
+    {"filename": "000003.png", "id": "d"}
+  ]
+}

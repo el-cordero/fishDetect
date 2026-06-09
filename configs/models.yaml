@@ -1,0 +1,28 @@
+yolo:
+  supported_when_available:
+    - yolov8n.pt
+    - yolov8s.pt
+    - yolov8m.pt
+    - yolo11n.pt
+    - yolo11s.pt
+    - yolo11m.pt
+    - rtdetr-l.pt
+  unsupported_policy: skip_with_metrics_record
+
+torchvision_detection:
+  fasterrcnn_resnet50_fpn:
+    weights: DEFAULT
+    min_size: 800
+  retinanet_resnet50_fpn:
+    weights: DEFAULT
+    min_size: 800
+  fcos_resnet50_fpn:
+    weights: DEFAULT
+    min_size: 800
+
+segmentation:
+  enabled_by_default: false
+  note: Current FishDetect merge is box-only. Add segmentation models only after a dataset with validated masks exists.
+  weak_box_mask_baseline:
+    enabled_by_default: false
+    warning: Box masks are not segmentation masks and should stay in a separate baseline.

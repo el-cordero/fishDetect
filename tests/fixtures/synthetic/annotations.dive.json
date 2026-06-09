@@ -1,0 +1,42 @@
+{
+  "tracks": {
+    "0": {
+      "id": 0,
+      "begin": 0,
+      "end": 0,
+      "confidencePairs": [["Acantharus coeruleus", 1.0]],
+      "features": [
+        {
+          "frame": 0,
+          "bounds": [10, 20, 50, 60],
+          "geometry": {
+            "type": "FeatureCollection",
+            "features": [
+              {
+                "type": "Feature",
+                "geometry": {
+                  "type": "Polygon",
+                  "coordinates": [[[10, 20], [50, 20], [50, 60], [10, 60], [10, 20]]]
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "1": {
+      "id": 1,
+      "begin": 1,
+      "end": 1,
+      "confidencePairs": [["Balistes vetula", 1.0]],
+      "features": [{"frame": 1, "bounds": [40, 50, 80, 90]}]
+    },
+    "2": {
+      "id": 2,
+      "begin": 2,
+      "end": 2,
+      "confidencePairs": [["Halichoeres bivitatus juvenile", 1.0]],
+      "features": [{"frame": 2, "bounds": [5, 5, 25, 30]}]
+    }
+  }
+}

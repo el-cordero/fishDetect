@@ -1,0 +1,5 @@
+global_frame,output_filename,sha256,source_path,source_filename,source_dataset,source_frame,class,duplicate_of_output_filename
+0,000000.png,sha-a,/raw/a.png,a.png,source-a,0,Acantharus coeruleus,
+1,000001.png,sha-b,/raw/b.png,b.png,source-b,1,Balistes vetula,
+2,000002.png,sha-c,/raw/c.png,c.png,source-c,2,Halichoeres bivitatus juvenile,
+3,000003.png,sha-c,/raw/c-copy.png,c-copy.png,source-c,3,Halichoeres bivitatus juvenile,000002.png
