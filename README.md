@@ -96,6 +96,8 @@ configs/class_aliases.yaml
 
 `configs/experiments.yaml` uses environment variables for cross-computer reproducibility. `configs/macbook_smoke.yaml` contains local MacBook defaults and can be copied or edited for a first workstation run.
 
+Use numeric YOLO batch sizes in committed configs. The MacBook smoke config uses `batch: 2`; standard experiment configs use `batch: 4`. The training helper still accepts `batch: auto` in local overrides and converts it to a numeric value, but numeric settings are preferred because some Ultralytics versions reject `batch="auto"`.
+
 ## Model Groups
 
 Full model comparisons are opt-in. The default group is `smoke`.

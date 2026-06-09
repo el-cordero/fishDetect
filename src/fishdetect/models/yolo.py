@@ -58,7 +58,7 @@ def train_yolo(
         "data": str(data_yaml),
         "epochs": int(epochs or training_cfg.get("epochs", 100)),
         "imgsz": int(training_cfg.get("imgsz", 1280)),
-        "batch": training_cfg.get("batch", "auto"),
+        "batch": _resolve_batch(training_cfg.get("batch", 4), smoke_test=smoke_test),
         "patience": int(training_cfg.get("patience", 25)),
         "workers": int(training_cfg.get("workers", 4)),
         "device": _ultralytics_device(resolved_device),
@@ -169,6 +169,25 @@ def _ultralytics_device(device: str) -> str:
     if device.startswith("cuda:"):
         return device.split(":", 1)[1]
     return device
+
+
+def _resolve_batch(batch: Any, smoke_test: bool = False) -> int | float:
+    """Convert config batch values into Ultralytics-compatible numeric values."""
+    if isinstance(batch, str):
+        value = batch.strip().lower()
+        if value == "auto":
+            return 2 if smoke_test else 4
+        try:
+            return int(value)
+        except ValueError:
+            try:
+                return float(value)
+            except ValueError as exc:
+                raise ValueError(
+                    f"Invalid batch value: {batch!r}. Use an integer like 4, "
+                    "a float like 0.5, or 'auto'."
+                ) from exc
+    return batch
 
 
 def _would_require_download(model_name: str) -> bool:

@@ -15,6 +15,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 os.environ.setdefault("MPLCONFIGDIR", str(Path(tempfile.gettempdir()) / "fishdetect_mplconfig"))
 
 from fishdetect.config import ConfigError, load_config
+from fishdetect.models.yolo import _resolve_batch
 from fishdetect.utils.files import ensure_dir, write_json
 from fishdetect.utils.seed import detect_device, package_versions
 
@@ -75,9 +76,16 @@ def main() -> int:
             checks.append(_check("prepared_root", False, str(exc)))
 
         training = config.get("training", {})
+        try:
+            resolved_batch = _resolve_batch(training.get("batch", 4), smoke_test=bool(training.get("smoke_test", False)))
+            checks.append(_check("training_batch", True, str(resolved_batch)))
+        except ValueError as exc:
+            ready = False
+            checks.append(_check("training_batch", False, str(exc)))
         macbook_notes = {
             "imgsz": training.get("imgsz"),
             "epochs": training.get("epochs"),
+            "batch": training.get("batch"),
             "workers": training.get("workers"),
             "device": training.get("device"),
             "smoke_test": training.get("smoke_test", False),

@@ -12,7 +12,7 @@ dataset:
 training:
   imgsz: 640
   epochs: 1
-  batch: auto
+  batch: 2
   patience: 1
   workers: 2
   device: auto
