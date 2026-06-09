@@ -214,3 +214,23 @@ def experiments_for_group(config: dict[str, Any], group: str = "smoke") -> list[
 
 def project_root() -> Path:
     return Path(__file__).resolve().parents[2]
+
+
+def get_experiment(config: dict[str, Any], name: str) -> dict[str, Any]:
+    """Return one experiment by name."""
+    return find_experiment(config, name)
+
+
+def get_experiment_group(config: dict[str, Any], group_name: str) -> list[str]:
+    """Return experiment names for a configured experiment group."""
+    groups = config.get("experiment_groups", {})
+    if group_name not in groups:
+        available = ", ".join(sorted(groups)) or "none"
+        raise ConfigError(
+            f"Experiment group '{group_name}' was not found. "
+            f"Available groups: {available}"
+        )
+    group = groups[group_name]
+    if not isinstance(group, list):
+        raise ConfigError(f"Experiment group '{group_name}' must be a list.")
+    return [str(item) for item in group]
